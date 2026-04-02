@@ -1,0 +1,288 @@
+<%- include('partials/header') %>
+
+<main class="container mb-5">
+    <div class="row mb-5 align-items-center">
+        <div class="col-lg-8">
+            <span class="tag-label"><i class="bi bi-activity me-2"></i>Historial de Entrenamiento</span>
+            <h1 class="display-3 fw-bolder mb-3" style="line-height: 1.1;">
+                WE TRACK SWEAT <br> & <span style="color: #888;">PERFORMANCE</span>
+            </h1>
+            <p class="lead text-muted fs-6" style="max-width: 500px;">
+                Eleva tu marca personal con un seguimiento excepcional de tu progreso. Analiza tu volumen y fuerza.
+            </p>
+        </div>
+        <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+            <div class="bento-card bento-dark text-start p-4 text-center text-lg-start h-100 d-flex flex-column justify-content-center">
+                <h2 class="display-5 fw-bolder text-white mb-0" id="total-workouts-stat">--</h2>
+                <p class="text-white-50 small mb-4">Series completadas este mes</p>
+                <a href="/workout/new" class="btn btn-light btn-pill w-100 fw-bold mt-auto">
+                    Registrar hoy <i class="bi bi-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <% if (history.length > 0) { %>
+        <div class="row mb-4 g-4">
+            <div class="col-lg-6">
+                <div class="bento-card h-100 d-flex flex-column">
+                    <h5 class="fw-bolder mb-1">Frecuencia Muscular</h5>
+                    <p class="small text-muted mb-4">Grupos entrenados en los últimos 30 días</p>
+                    <div class="flex-grow-1" style="position: relative; min-height: 250px;">
+                        <canvas id="muscleChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="bento-card h-100 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <h5 class="fw-bolder mb-1">Evolución de Carga</h5>
+                            <p class="small text-muted mb-0">Peso máximo (kg) por sesión</p>
+                        </div>
+                        <select id="exerciseSelect" class="form-select custom-input w-auto form-select-sm shadow-none">
+                            </select>
+                    </div>
+                    <div class="flex-grow-1" style="position: relative; min-height: 250px;">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
+    <div class="bento-card p-0 overflow-hidden">
+        <% if (history.length > 0) { %>
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead style="border-bottom: 1px solid var(--border-color);">
+                        <tr>
+                            <th class="ps-5 py-4 text-uppercase text-muted" style="font-size: 0.75rem; letter-spacing: 1px;">Fecha</th>
+                            <th class="py-4 text-uppercase text-muted" style="font-size: 0.75rem; letter-spacing: 1px;">Ejercicio</th>
+                            <th class="py-4 text-uppercase text-muted text-center" style="font-size: 0.75rem; letter-spacing: 1px;">Rendimiento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% history.forEach(row => { 
+                            // Lógica para detectar qué músculo iluminar en el SVG
+                            const mg = (row.muscle_group || '').toLowerCase(); 
+                            const isPecho = mg.includes('pecho');
+                            const isEspalda = mg.includes('espalda');
+                            const isHombro = mg.includes('hombro') || mg.includes('deltoide');
+                            const isBrazo = mg.includes('brazo') || mg.includes('bíceps') || mg.includes('tríceps');
+                            const isPierna = mg.includes('pierna') || mg.includes('cuádriceps') || mg.includes('glúteo') || mg.includes('femoral') || mg.includes('pantorrilla');
+                            const isCore = mg.includes('core') || mg.includes('abdomen') || mg.includes('abdominal');
+                            
+                            const activeColor = '#121212';
+                            const inactiveColor = '#e6e6e6';
+                        %>
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td class="ps-5 py-4">
+                                    <span class="fw-bold"><%= new Date(row.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) %></span>
+                                </td>
+                                <td class="py-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3 map-container d-none d-sm-block">
+                                            <svg viewBox="0 0 60 100" width="24" height="40" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="30" cy="12" r="8" fill="<%= inactiveColor %>" />
+                                                <rect x="12" y="24" width="36" height="10" rx="4" fill="<%= isHombro ? activeColor : inactiveColor %>" style="transition: fill 0.3s ease;"/>
+                                                <rect x="18" y="36" width="24" height="18" rx="4" fill="<%= (isPecho || isEspalda) ? activeColor : inactiveColor %>" style="transition: fill 0.3s ease;"/>
+                                                <rect x="10" y="36" width="6" height="25" rx="3" fill="<%= isBrazo ? activeColor : inactiveColor %>" style="transition: fill 0.3s ease;"/>
+                                                <rect x="44" y="36" width="6" height="25" rx="3" fill="<%= isBrazo ? activeColor : inactiveColor %>" style="transition: fill 0.3s ease;"/>
+                                                <rect x="20" y="56" width="20" height="12" rx="3" fill="<%= isCore ? activeColor : inactiveColor %>" style="transition: fill 0.3s ease;"/>
+                                                <rect x="20" y="70" width="8" height="28" rx="4" fill="<%= isPierna ? activeColor : inactiveColor %>" style="transition: fill 0.3s ease;"/>
+                                                <rect x="32" y="70" width="8" height="28" rx="4" fill="<%= isPierna ? activeColor : inactiveColor %>" style="transition: fill 0.3s ease;"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <span class="fw-bolder fs-5 text-dark d-block tracking-tight"><%= row.exercise_name %></span>
+                                            <span class="small text-muted text-uppercase fw-bold letter-spacing-1" style="font-size: 0.65rem;"><%= row.muscle_group || 'General' %></span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 text-center">
+                                    <span class="badge bg-light text-dark border rounded-pill px-3 py-2 me-1">
+                                        <%= row.reps %> Reps
+                                    </span>
+                                    <span class="badge bg-dark text-white rounded-pill px-3 py-2">
+                                        <%= row.weight %> Kg
+                                    </span>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <div class="text-center py-5 my-5">
+                <div class="tag-label mb-3">Tu lienzo está en blanco</div>
+                <h3 class="fw-bold mb-4">No hay entrenamientos registrados.</h3>
+                <a href="/workout/new" class="btn btn-black btn-pill">
+                    Comenzar el viaje <i class="bi bi-play-fill ms-1"></i>
+                </a>
+            </div>
+        <% } %>
+    </div>
+</main>
+
+<style>
+    .custom-input {
+        background-color: #f7f7f7;
+        border: 1px solid transparent;
+        border-radius: 50px;
+        padding: 0.4rem 1rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    .custom-input:focus {
+        border-color: #121212;
+        box-shadow: none;
+    }
+    .letter-spacing-1 {
+        letter-spacing: 1px;
+    }
+    .table-borderless tbody tr:hover {
+        background-color: #fafafa;
+    }
+    /* Efecto hover sobre el vector */
+    .table-borderless tbody tr:hover .map-container svg rect[fill="#121212"] {
+        opacity: 0.8;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<% if (history.length > 0) { %>
+<script>
+    const rawHistory = <%- JSON.stringify(history) %>;
+    
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    Chart.defaults.color = '#888';
+    
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const recentSets = rawHistory.filter(row => new Date(row.date) >= thirtyDaysAgo);
+    document.getElementById('total-workouts-stat').innerText = recentSets.length;
+
+    const muscleCount = {};
+    recentSets.forEach(row => {
+        const muscle = row.muscle_group || 'Otros';
+        muscleCount[muscle] = (muscleCount[muscle] || 0) + 1;
+    });
+
+    const ctxMuscle = document.getElementById('muscleChart').getContext('2d');
+    new Chart(ctxMuscle, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(muscleCount),
+            datasets: [{
+                label: 'Series realizadas',
+                data: Object.values(muscleCount),
+                backgroundColor: '#121212',
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#f0f0f0' }, border: { display: false } },
+                x: { grid: { display: false }, border: { display: false } }
+            }
+        }
+    });
+
+    const exercisesList = [...new Set(rawHistory.map(row => row.exercise_name))].sort();
+    const selectEl = document.getElementById('exerciseSelect');
+    
+    exercisesList.forEach(ex => {
+        const option = document.createElement('option');
+        option.value = ex;
+        option.text = ex;
+        selectEl.appendChild(option);
+    });
+
+    let progressChartInstance = null;
+    const ctxProgress = document.getElementById('progressChart').getContext('2d');
+
+    function updateProgressChart(exerciseName) {
+        const exHistory = rawHistory.filter(row => row.exercise_name === exerciseName);
+        
+        const progressData = {};
+        exHistory.forEach(row => {
+            const dateStr = new Date(row.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+            if (!progressData[dateStr] || row.weight > progressData[dateStr]) {
+                progressData[dateStr] = row.weight;
+            }
+        });
+
+        const labels = Object.keys(progressData).reverse();
+        const data = Object.values(progressData).reverse();
+
+        if (progressChartInstance) {
+            progressChartInstance.destroy();
+        }
+
+        progressChartInstance = new Chart(ctxProgress, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Peso Max (kg)',
+                    data: data,
+                    borderColor: '#121212',
+                    backgroundColor: 'rgba(18, 18, 18, 0.05)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#121212',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    fill: true,
+                    tension: 0.3 
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' kg';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: false,
+                        grid: { color: '#f0f0f0' }, 
+                        border: { display: false } 
+                    },
+                    x: { grid: { display: false }, border: { display: false } }
+                }
+            }
+        });
+    }
+
+    selectEl.addEventListener('change', (e) => {
+        updateProgressChart(e.target.value);
+    });
+
+    if (exercisesList.length > 0) {
+        selectEl.value = exercisesList[0];
+        updateProgressChart(exercisesList[0]);
+    }
+</script>
+<% } %>
+
+</body>
+</html>
