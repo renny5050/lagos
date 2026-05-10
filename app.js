@@ -43,6 +43,10 @@ const isAuthenticated = (req, res, next) => {
 // --- RUTAS PÚBLICAS ---
 app.get('/', (req, res) => res.redirect('/login'));
 
+app.get('/manifest.json', (req, res) => {
+    res.sendFile(path.join(__dirname, 'manifest.json'));
+});
+
 app.get('/register', authCtrl.getRegister);
 app.post('/register', authCtrl.postRegister);
 
