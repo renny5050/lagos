@@ -54,6 +54,10 @@ app.get('/manifest.json', (req, res) => {
     res.sendFile(path.join(__dirname, 'manifest.json'));
 });
 
+app.get('/icon.png', (req, res) => {
+    res.sendFile(path.join(__dirname, 'icon.png'));
+});
+
 app.get('/register', authCtrl.getRegister);
 app.post('/register', authCtrl.postRegister);
 
