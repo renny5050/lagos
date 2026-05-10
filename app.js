@@ -23,6 +23,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true })); // Para leer formularios
 app.use(express.json()); // Para peticiones AJAX si las hubiera
 
+
+const path = require('path');
+// ... other imports
+
+// This makes everything inside the "public" folder available at the root URL
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Configuración de Sesiones
 app.use(session({
     secret: 'mi_clave_secreta_super_segura', // Cambia esto en producción
